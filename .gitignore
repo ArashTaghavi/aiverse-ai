@@ -1,0 +1,57 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.hypothesis/
+.tox/
+.nox/
+
+# Test coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Build and packaging output
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Composer dependencies
+/app/vendor/
+
+# Runtime uploads and local databases
+/data/uploads/
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite3-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.log
+
+# Editor and operating system files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

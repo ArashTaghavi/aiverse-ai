@@ -1,0 +1,22 @@
+[project]
+name = "aiverse"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "docx2txt",
+    "fastapi[standard]",
+    "langchain",
+    "langchain-community",
+    "langchain-core",
+    "langchain-openai",
+    "langchain-postgres",
+    "langchain-text-splitters",
+    "pydantic-settings",
+    "psycopg[binary]>=3.3.6",
+    "pymupdf4llm",
+    "python-dotenv",
+    "sqlalchemy",
+]
+
+[tool.fastapi]
+entrypoint = "main:app"

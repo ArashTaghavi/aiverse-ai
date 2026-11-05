@@ -1,8 +1,11 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
+
+
+type DatabaseType = Literal["postgres", "mysql", "mariadb", "sqlserver"]
 
 
 class DatabaseConnection(TypedDict):
-    database_type: str
+    database_type: DatabaseType
     host: str
     port: int
     database: str

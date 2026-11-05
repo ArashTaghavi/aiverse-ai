@@ -18,8 +18,12 @@ def execute_script(
     if database_type == "postgres":
         command.extend(
             [
+                "--env",
+                f"PGPASSWORD={connection['password']}",
                 container_name,
                 "psql",
+                "--host",
+                "127.0.0.1",
                 "-X",
                 "--set",
                 "ON_ERROR_STOP=1",

@@ -4,10 +4,10 @@ from pathlib import Path
 
 from ..config import DATABASE_CONFIGS
 from .database import create_database
-from .types import DatabaseConnection
+from .types import DatabaseConnection, DatabaseType
 
 
-def start_database(database_type: str) -> DatabaseConnection:
+def start_database(database_type: DatabaseType) -> DatabaseConnection:
     """Start a database server and create a unique database."""
 
     if database_type not in DATABASE_CONFIGS:

@@ -2,9 +2,11 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from .provisioning.types import DatabaseType
+
 
 class ProvisionDatabaseResponse(BaseModel):
-    database_type: Literal["postgres", "mysql"]
+    database_type: DatabaseType
     host: str
     port: int
     database: str

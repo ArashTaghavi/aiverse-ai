@@ -9,7 +9,7 @@ services:
       MSSQL_PID: Developer
       MSSQL_SA_PASSWORD: "Analyst_Admin_2026!"
     ports:
-      - "1434:1433"
+      - "55404:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:

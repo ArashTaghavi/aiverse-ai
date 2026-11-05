@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: analyst
       POSTGRES_PASSWORD: analyst_password
     ports:
-      - "5433:5432"
+      - "55401:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

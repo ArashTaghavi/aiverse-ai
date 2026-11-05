@@ -1,4 +1,4 @@
-from ..ingestion.indexing import get_vector_store
+from app.modules.base.ingestion import get_vector_store
 
 
 def retrieve_documents(

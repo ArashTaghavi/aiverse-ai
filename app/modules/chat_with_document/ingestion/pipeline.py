@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from .chunking import chunking
-from .indexing import get_vector_store
+from app.modules.base.ingestion import chunking, get_vector_store
+
 from .loader import load_document
 
 

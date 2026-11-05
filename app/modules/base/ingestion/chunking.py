@@ -1,7 +1,7 @@
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from ..config import CHUNK_OVERLAP, CHUNK_SIZE
+from ...chat_with_document.config import CHUNK_OVERLAP, CHUNK_SIZE
 
 
 def chunking(documents: list[Document]) -> list[Document]:

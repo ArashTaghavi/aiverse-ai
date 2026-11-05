@@ -1,12 +1,15 @@
+from app.core.config import settings
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres.vectorstores import (
     DistanceStrategy,
     PGVector,
 )
 
-from app.core.config import settings
-
-from ..config import COLLECTION_NAME, EMBEDDING_LENGTH, EMBEDDING_MODEL
+from ...chat_with_document.config import (
+    COLLECTION_NAME,
+    EMBEDDING_LENGTH,
+    EMBEDDING_MODEL,
+)
 
 
 def get_vector_store() -> PGVector:

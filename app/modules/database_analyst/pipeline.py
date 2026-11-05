@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from .ingestion import execute_script, start_database
+from .provisioning import execute_script, start_database
 
 
 class DatabaseAnalyst:

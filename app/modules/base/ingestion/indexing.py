@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from app.core.config import settings
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres.vectorstores import (
@@ -12,6 +14,7 @@ from ...chat_with_document.config import (
 )
 
 
+@lru_cache(maxsize=1)
 def get_vector_store() -> PGVector:
     embeddings = OpenAIEmbeddings(
         model=EMBEDDING_MODEL,

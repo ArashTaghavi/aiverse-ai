@@ -3,6 +3,7 @@ from langchain_core.messages import BaseMessage
 from sqlalchemy import select
 
 from app.core.database import DbSession
+from app.modules.chat_with_document.config import HISTORY_TURNS
 from app.modules.chat_with_document.models import DocumentChatTurn
 
 
@@ -18,10 +19,11 @@ def chat_history(
             DocumentChatTurn.document_id == document_id,
             DocumentChatTurn.answer.is_not(None),
         )
-        .order_by(DocumentChatTurn.id.asc())
+        .order_by(DocumentChatTurn.id.desc())
+        .limit(HISTORY_TURNS)
     ).all()
 
-    for turn in histories:
+    for turn in reversed(histories):
         messages.extend(
             [
                 HumanMessage(content=turn.question),

@@ -1,10 +1,11 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 from app.core.database import DbSession
 
 from .ingestion import ingest_document
-from .pipline import ChatWithDocument
-from .schemas import AskRequest, AskResponse, IngestDocumentRequest
+from .pipeline import ChatWithDocument
+from .schemas import AskRequest, IngestDocumentRequest
 
 router = APIRouter(prefix="/chat-with-document", tags=["Chat with Document"])
 
@@ -21,12 +22,15 @@ def ingest(request: IngestDocumentRequest):
     )
 
 
-@router.post("/ask", response_model=AskResponse)
-def ask(db: DbSession, request: AskRequest):
+@router.post("/ask")
+async def ask(db: DbSession, request: AskRequest):
     app = ChatWithDocument(
         db=db,
         document_id=request.document_id,
         owner_id=request.owner_id,
     )
 
-    return AskResponse(answer=app.ask(question=request.question))
+    return StreamingResponse(
+        app.ask(question=request.question),
+        media_type="text/plain; charset=utf-8",
+    )

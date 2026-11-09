@@ -1,10 +1,8 @@
 from typing import TypedDict
 
 from langchain.messages import AIMessage, HumanMessage
-from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from sqlalchemy import select
 
 from app.core.database import DbSession

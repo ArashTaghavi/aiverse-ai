@@ -8,7 +8,7 @@ class DatabaseChatTurn(Base):
     __tablename__ = "database_chat_turns"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    document_id: Mapped[int] = mapped_column(BigInteger)
+    database_id: Mapped[int] = mapped_column(BigInteger)
 
     question: Mapped[str] = mapped_column(Text)
     answer: Mapped[str | None] = mapped_column(Text, nullable=True)

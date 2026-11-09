@@ -29,10 +29,9 @@ DATABASE_CONFIGS = {
     },
 }
 
-# LLM
-MODEL_NAME = "gpt-4o-mini"
-MODEL_PROVIDER = "openai"
-TEMPERATURE = 0.0
+COLLECTION_NAME = "database_analyst"
+
+HISTORY_TURNS = 20
 
 SYSTEM_PROMPT = """
 You are a strict SQLite SQL assistant.

@@ -1,11 +1,10 @@
 from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
 
 from app.core.database import DbSession
+from app.modules.base import RAGEngine
+from app.modules.chat_with_document import ChatWithDocument
 
-from .ingestion import ingest_document
-from .pipeline import ChatWithDocument
-from .schemas import AskRequest, IngestDocumentRequest
+from .schemas import AskRequest, AskResponse, IngestDocumentRequest
 
 router = APIRouter(prefix="/chat-with-document", tags=["Chat with Document"])
 
@@ -23,14 +22,15 @@ def ingest(request: IngestDocumentRequest):
 
 
 @router.post("/ask")
-async def ask(db: DbSession, request: AskRequest):
-    app = ChatWithDocument(
+def ask(db: DbSession, request: AskRequest):
+    rag = ChatWithDocument(
         db=db,
-        document_id=request.document_id,
-        owner_id=request.owner_id,
+        ownership_metadata={
+            "document_id": request.document_id,
+            "owner_id": request.owner_id,
+        },
     )
+    engine = RAGEngine(rag=rag)
+    answer = engine.ask(question=request.question)
 
-    return StreamingResponse(
-        app.ask(question=request.question),
-        media_type="text/plain; charset=utf-8",
-    )
+    return AskResponse(answer=answer)

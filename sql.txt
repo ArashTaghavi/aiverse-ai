@@ -1,0 +1,1376 @@
+USE [master]
+GO
+/****** Object:  Database [app_bayan]    Script Date: 11/8/2026 6:57:22 PM ******/
+CREATE DATABASE [app_bayan]
+ CONTAINMENT = NONE
+ ON  PRIMARY
+( NAME = N'Tadarokat', FILENAME = N'/var/opt/mssql/data/app_bayan.mdf' , SIZE = 73728KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON
+( NAME = N'Tadarokat_log', FILENAME = N'/var/opt/mssql/data/app_bayan_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+GO
+ALTER DATABASE [app_bayan] SET COMPATIBILITY_LEVEL = 150
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [app_bayan].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [app_bayan] SET ANSI_NULL_DEFAULT OFF
+GO
+ALTER DATABASE [app_bayan] SET ANSI_NULLS OFF
+GO
+ALTER DATABASE [app_bayan] SET ANSI_PADDING OFF
+GO
+ALTER DATABASE [app_bayan] SET ANSI_WARNINGS OFF
+GO
+ALTER DATABASE [app_bayan] SET ARITHABORT OFF
+GO
+ALTER DATABASE [app_bayan] SET AUTO_CLOSE OFF
+GO
+ALTER DATABASE [app_bayan] SET AUTO_SHRINK OFF
+GO
+ALTER DATABASE [app_bayan] SET AUTO_UPDATE_STATISTICS ON
+GO
+ALTER DATABASE [app_bayan] SET CURSOR_CLOSE_ON_COMMIT OFF
+GO
+ALTER DATABASE [app_bayan] SET CURSOR_DEFAULT  GLOBAL
+GO
+ALTER DATABASE [app_bayan] SET CONCAT_NULL_YIELDS_NULL OFF
+GO
+ALTER DATABASE [app_bayan] SET NUMERIC_ROUNDABORT OFF
+GO
+ALTER DATABASE [app_bayan] SET QUOTED_IDENTIFIER OFF
+GO
+ALTER DATABASE [app_bayan] SET RECURSIVE_TRIGGERS OFF
+GO
+ALTER DATABASE [app_bayan] SET  DISABLE_BROKER
+GO
+ALTER DATABASE [app_bayan] SET AUTO_UPDATE_STATISTICS_ASYNC OFF
+GO
+ALTER DATABASE [app_bayan] SET DATE_CORRELATION_OPTIMIZATION OFF
+GO
+ALTER DATABASE [app_bayan] SET TRUSTWORTHY OFF
+GO
+ALTER DATABASE [app_bayan] SET ALLOW_SNAPSHOT_ISOLATION OFF
+GO
+ALTER DATABASE [app_bayan] SET PARAMETERIZATION SIMPLE
+GO
+ALTER DATABASE [app_bayan] SET READ_COMMITTED_SNAPSHOT OFF
+GO
+ALTER DATABASE [app_bayan] SET HONOR_BROKER_PRIORITY OFF
+GO
+ALTER DATABASE [app_bayan] SET RECOVERY SIMPLE
+GO
+ALTER DATABASE [app_bayan] SET  MULTI_USER
+GO
+ALTER DATABASE [app_bayan] SET PAGE_VERIFY CHECKSUM
+GO
+ALTER DATABASE [app_bayan] SET DB_CHAINING OFF
+GO
+ALTER DATABASE [app_bayan] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF )
+GO
+ALTER DATABASE [app_bayan] SET TARGET_RECOVERY_TIME = 60 SECONDS
+GO
+ALTER DATABASE [app_bayan] SET DELAYED_DURABILITY = DISABLED
+GO
+ALTER DATABASE [app_bayan] SET ACCELERATED_DATABASE_RECOVERY = OFF
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'app_bayan', N'ON'
+GO
+ALTER DATABASE [app_bayan] SET QUERY_STORE = OFF
+GO
+USE [app_bayan]
+GO
+/****** Object:  User [z.jahanbakhsh]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE USER [z.jahanbakhsh] WITHOUT LOGIN WITH DEFAULT_SCHEMA=[dbo]
+GO
+/****** Object:  User [app]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE USER [app] WITHOUT LOGIN WITH DEFAULT_SCHEMA=[dbo]
+GO
+ALTER ROLE [db_owner] ADD MEMBER [z.jahanbakhsh]
+GO
+ALTER ROLE [db_datareader] ADD MEMBER [z.jahanbakhsh]
+GO
+ALTER ROLE [db_datawriter] ADD MEMBER [z.jahanbakhsh]
+GO
+ALTER ROLE [db_datareader] ADD MEMBER [app]
+GO
+ALTER ROLE [db_datawriter] ADD MEMBER [app]
+GO
+USE [app_bayan]
+GO
+/****** Object:  Sequence [dbo].[Sequence-AssetPlateNo]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE SEQUENCE [dbo].[Sequence-AssetPlateNo]
+ AS [bigint]
+ START WITH 10000000
+ INCREMENT BY 1
+ MINVALUE 10000000
+ MAXVALUE 9223372036854775807
+ CACHE
+GO
+/****** Object:  Table [dbo].[activity_log]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[activity_log](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[log_name] [nvarchar](255) NULL,
+	[description] [nvarchar](max) NOT NULL,
+	[subject_type] [nvarchar](255) NULL,
+	[subject_id] [bigint] NULL,
+	[causer_type] [nvarchar](255) NULL,
+	[causer_id] [bigint] NULL,
+	[properties] [nvarchar](max) NULL,
+	[created_at] [datetime] NULL,
+	[updated_at] [datetime] NULL,
+	[event] [nvarchar](255) NULL,
+	[batch_uuid] [uniqueidentifier] NULL,
+PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[app_info]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[app_info](
+	[app_uuid] [char](36) NOT NULL,
+	[app_title] [nvarchar](100) NULL,
+	[activation_code] [nvarchar](max) NOT NULL,
+	[status] [nvarchar](max) NULL,
+	[activated_at] [datetime] NULL,
+	[blocked_at] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[audits]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[audits](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[user_type] [nvarchar](255) NULL,
+	[user_id] [bigint] NULL,
+	[event] [nvarchar](255) NOT NULL,
+	[auditable_type] [nvarchar](255) NOT NULL,
+	[auditable_id] [bigint] NOT NULL,
+	[old_values] [nvarchar](max) NULL,
+	[new_values] [nvarchar](max) NULL,
+	[url] [nvarchar](max) NULL,
+	[ip_address] [nvarchar](45) NULL,
+	[user_agent] [nvarchar](1023) NULL,
+	[tags] [nvarchar](255) NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK__audits__3213E83FC610EB43] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[cities]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[cities](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[province_id] [bigint] NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__cities__3213E83F097BE9CA] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[configuration_items]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[configuration_items](
+	[id] [smallint] NOT NULL,
+	[updater_id] [smallint] NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[item_key] [varchar](100) NOT NULL,
+	[item_value] [nvarchar](max) NULL,
+	[updated_at] [datetime] NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[continents]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[continents](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__continen__3213E83F475FF894] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[countries]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[countries](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[continent_id] [bigint] NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_home_country] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__countrie__3213E83F15CC9CA6] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[department_categories]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[department_categories](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](300) NOT NULL,
+	[is_headquarter] [bit] NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_department_categories] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[department_types]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[department_types](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[supervisor_grade_id] [tinyint] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__departme__3213E83FBDEF57AB] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[departments]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[departments](
+	[id] [smallint] IDENTITY(1,1) NOT NULL,
+	[uuid] [char](36) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[department_number] [nvarchar](50) NOT NULL,
+	[parent_id] [bigint] NULL,
+	[left_id] [bigint] NULL,
+	[right_id] [bigint] NULL,
+	[department_type_id] [bigint] NOT NULL,
+	[department_category_id] [bigint] NULL,
+	[logo_image] [nvarchar](max) NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__departme__3213E83FFE3907C1] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_directors]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_directors](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[document_id] [int] NOT NULL,
+	[sex_id] [tinyint] NOT NULL,
+	[first_name] [nvarchar](50) NOT NULL,
+	[last_name] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_directors] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_kinds]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_kinds](
+	[id] [tinyint] NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[code] [varchar](20) NULL,
+ CONSTRAINT [PK_file_kinds] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_machine_tag]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_machine_tag](
+	[document_id] [int] NOT NULL,
+	[machine_tag_id] [int] NOT NULL,
+	[count] [tinyint] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_machine_tag] PRIMARY KEY CLUSTERED
+(
+	[document_id] ASC,
+	[machine_tag_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_manual_tag]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_manual_tag](
+	[document_id] [int] NOT NULL,
+	[manual_tag_id] [int] NOT NULL,
+	[count] [tinyint] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_manual_tag] PRIMARY KEY CLUSTERED
+(
+	[document_id] ASC,
+	[manual_tag_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_owners]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_owners](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[department_id] [smallint] NOT NULL,
+	[document_id] [int] NOT NULL,
+	[is_current] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_owners] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_profile]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_profile](
+	[document_id] [int] NOT NULL,
+	[profile_id] [smallint] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_profile] PRIMARY KEY CLUSTERED
+(
+	[document_id] ASC,
+	[profile_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_signatories]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_signatories](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[document_id] [int] NOT NULL,
+	[sex_id] [tinyint] NOT NULL,
+	[first_name] [nvarchar](50) NOT NULL,
+	[last_name] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_document_signatories] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[document_subject]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[document_subject](
+	[document_id] [int] NOT NULL,
+	[subject_id] [tinyint] NOT NULL,
+	[created_at] [datetime] NULL,
+	[updated_at] [datetime] NULL,
+ CONSTRAINT [PK_document_subject] PRIMARY KEY CLUSTERED
+(
+	[document_id] ASC,
+	[subject_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[documents]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[documents](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[file_id] [int] NULL,
+	[text_genre_id] [tinyint] NULL,
+	[language_id] [tinyint] NULL,
+	[issue_origin_id] [tinyint] NULL,
+	[text_type_id] [tinyint] NULL,
+	[document_kind_id] [tinyint] NULL,
+	[publish_method_id] [tinyint] NULL,
+	[body] [nvarchar](max) NOT NULL,
+	[title] [nvarchar](250) NOT NULL,
+	[source] [nvarchar](200) NOT NULL,
+	[view_count] [smallint] NOT NULL,
+	[published_at] [datetime] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_documents] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[exceptions]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[exceptions](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[user_id] [bigint] NULL,
+	[ip_address] [nvarchar](50) NULL,
+	[message] [nvarchar](max) NOT NULL,
+	[trace] [nvarchar](max) NOT NULL,
+	[code] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+ CONSTRAINT [PK__applicat__3213E83F1E5D945E] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[failed_jobs]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[failed_jobs](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[uuid] [nvarchar](255) NOT NULL,
+	[connection] [nvarchar](max) NOT NULL,
+	[queue] [nvarchar](max) NOT NULL,
+	[payload] [nvarchar](max) NOT NULL,
+	[exception] [nvarchar](max) NOT NULL,
+	[failed_at] [datetime] NOT NULL,
+PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[files]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[files](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[file_size] [int] NOT NULL,
+	[mime_type] [varchar](100) NOT NULL,
+	[file_content] [varbinary](max) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_files] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[grades]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[grades](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__grades__3213E83F7C1E1433] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[issue_origins]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[issue_origins](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_issue_origins] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[languages]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[languages](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_languages] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[machine_tags]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[machine_tags](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_tags] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[manual_tags]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[manual_tags](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK_manual_tags] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[migrations]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[migrations](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[migration] [nvarchar](255) NOT NULL,
+	[batch] [int] NOT NULL,
+PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[password_resets]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[password_resets](
+	[email] [nvarchar](255) NOT NULL,
+	[token] [nvarchar](255) NOT NULL,
+	[created_at] [datetime] NULL
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[people]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[people](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[first_name] [nvarchar](50) NOT NULL,
+	[last_name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_people] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[permission_role]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[permission_role](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[permission_id] [bigint] NOT NULL,
+	[role_id] [bigint] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK__permissi__3213E83F5A0715E4] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[permission_sets]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[permission_sets](
+	[id] [bigint] NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[order_no] [tinyint] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__permissi__3213E83F6D1717EE] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[permission_user]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[permission_user](
+	[user_id] [smallint] NOT NULL,
+	[permission_id] [bigint] NOT NULL,
+ CONSTRAINT [PK_permission_user] PRIMARY KEY CLUSTERED
+(
+	[user_id] ASC,
+	[permission_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[permissions]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[permissions](
+	[id] [bigint] NOT NULL,
+	[permission_set_id] [bigint] NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[code] [nvarchar](50) NULL,
+ CONSTRAINT [PK__permissi__3213E83F5ADBE86A] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[personal_access_tokens]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[personal_access_tokens](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[tokenable_type] [nvarchar](255) NOT NULL,
+	[tokenable_id] [bigint] NOT NULL,
+	[name] [nvarchar](255) NOT NULL,
+	[token] [nvarchar](64) NOT NULL,
+	[abilities] [nvarchar](max) NULL,
+	[last_used_at] [datetime] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+ CONSTRAINT [PK__personal__3213E83F4630A38B] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[profiles]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[profiles](
+	[id] [smallint] IDENTITY(1,1) NOT NULL,
+	[parent_id] [smallint] NULL,
+	[user_id] [smallint] NOT NULL,
+	[department_id] [smallint] NOT NULL,
+	[grade_id] [tinyint] NOT NULL,
+	[is_enable] [bit] NOT NULL,
+	[is_current] [bit] NOT NULL,
+	[description] [nvarchar](200) NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__profiles__3213E83FDB530774] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[provinces]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[provinces](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[country_id] [bigint] NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__province__3213E83FB01274C2] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[publish_methods]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[publish_methods](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[publish_type_id] [tinyint] NOT NULL,
+	[is_readonly] [bit] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_publish_methods] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[publish_types]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[publish_types](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__publish___3213E83F1199D61E] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[role_user]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[role_user](
+	[user_id] [smallint] NOT NULL,
+	[role_id] [bigint] NOT NULL,
+	[created_at] [datetime] NULL,
+	[updated_at] [datetime] NULL,
+ CONSTRAINT [PK_role_user] PRIMARY KEY CLUSTERED
+(
+	[user_id] ASC,
+	[role_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[roles]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[roles](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+ CONSTRAINT [PK__roles__3213E83F1321A58D] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[sexes]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[sexes](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](20) NOT NULL,
+	[prefix] [nvarchar](20) NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__genders__3213E83FF401A8D2] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[subject_types]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[subject_types](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_subject_types] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[subjects]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[subjects](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[subject_type_id] [tinyint] NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_subjects] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tag_types]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tag_types](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_manual] [bit] NOT NULL,
+	[is_auto] [bit] NOT NULL,
+ CONSTRAINT [PK_tag_types] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[text_genres]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[text_genres](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_text_genres] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[text_types]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[text_types](
+	[id] [tinyint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[is_readonly] [bit] NOT NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[expired_at] [datetime] NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK_text_types] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[users]    Script Date: 11/8/2026 6:57:23 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[users](
+	[id] [smallint] IDENTITY(1,1) NOT NULL,
+	[uuid] [nvarchar](50) NULL,
+	[sex_id] [tinyint] NULL,
+	[username] [nvarchar](100) NOT NULL,
+	[first_name] [nvarchar](100) NOT NULL,
+	[last_name] [nvarchar](100) NOT NULL,
+	[employment_no] [int] NULL,
+	[password] [nvarchar](200) NULL,
+	[privileges_code] [nvarchar](200) NULL,
+	[is_active] [bit] NOT NULL,
+	[started_at] [datetime] NULL,
+	[finished_at] [datetime] NULL,
+	[two_factor_secret] [nvarchar](255) NULL,
+	[two_factor_recovery_codes] [nvarchar](255) NULL,
+	[two_factor_confirmed_at] [datetime] NULL,
+	[password_expired_at] [datetime] NULL,
+	[first_login_at] [datetime] NULL,
+	[last_login_at] [datetime] NULL,
+	[last_access_at] [datetime] NULL,
+	[expired_at] [datetime] NULL,
+	[blocked_at] [datetime] NULL,
+	[created_at] [datetime] NOT NULL,
+	[updated_at] [datetime] NOT NULL,
+	[deleted_at] [datetime] NULL,
+ CONSTRAINT [PK__users__3213E83FC4B48432] PRIMARY KEY CLUSTERED
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [activity_log_log_name_index]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [activity_log_log_name_index] ON [dbo].[activity_log]
+(
+	[log_name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [causer]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [causer] ON [dbo].[activity_log]
+(
+	[causer_type] ASC,
+	[causer_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [subject]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [subject] ON [dbo].[activity_log]
+(
+	[subject_type] ASC,
+	[subject_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [audits_auditable_type_auditable_id_index]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [audits_auditable_type_auditable_id_index] ON [dbo].[audits]
+(
+	[auditable_type] ASC,
+	[auditable_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [audits_user_id_user_type_index]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [audits_user_id_user_type_index] ON [dbo].[audits]
+(
+	[user_id] ASC,
+	[user_type] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [failed_jobs_uuid_unique]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [failed_jobs_uuid_unique] ON [dbo].[failed_jobs]
+(
+	[uuid] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [password_resets_email_index]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [password_resets_email_index] ON [dbo].[password_resets]
+(
+	[email] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [personal_access_tokens_token_unique]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [personal_access_tokens_token_unique] ON [dbo].[personal_access_tokens]
+(
+	[token] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [personal_access_tokens_tokenable_type_tokenable_id_index]    Script Date: 11/8/2026 6:57:23 PM ******/
+CREATE NONCLUSTERED INDEX [personal_access_tokens_tokenable_type_tokenable_id_index] ON [dbo].[personal_access_tokens]
+(
+	[tokenable_type] ASC,
+	[tokenable_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[countries] ADD  CONSTRAINT [DF__countries__is_ho__73D26C78]  DEFAULT ('0') FOR [is_home_country]
+GO
+ALTER TABLE [dbo].[department_categories] ADD  CONSTRAINT [DF_department_categories_is_headquarter]  DEFAULT ((0)) FOR [is_headquarter]
+GO
+ALTER TABLE [dbo].[department_categories] ADD  CONSTRAINT [DF_department_categories_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[department_types] ADD  CONSTRAINT [DF_department_types_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[departments] ADD  CONSTRAINT [DF_departments_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[document_machine_tag] ADD  CONSTRAINT [DF_document_machine_tag_count]  DEFAULT ((1)) FOR [count]
+GO
+ALTER TABLE [dbo].[document_manual_tag] ADD  CONSTRAINT [DF_document_manual_tag_count]  DEFAULT ((1)) FOR [count]
+GO
+ALTER TABLE [dbo].[document_owners] ADD  CONSTRAINT [DF_document_owner_is_current]  DEFAULT ((1)) FOR [is_current]
+GO
+ALTER TABLE [dbo].[documents] ADD  CONSTRAINT [DF_documents_view_count]  DEFAULT ((0)) FOR [view_count]
+GO
+ALTER TABLE [dbo].[failed_jobs] ADD  DEFAULT (getdate()) FOR [failed_at]
+GO
+ALTER TABLE [dbo].[grades] ADD  CONSTRAINT [DF_grades_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[issue_origins] ADD  CONSTRAINT [DF_issue_origins_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[languages] ADD  CONSTRAINT [DF_languages_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[people] ADD  CONSTRAINT [DF_people_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[profiles] ADD  CONSTRAINT [DF__profiles__is_ena__15336043]  DEFAULT ('1') FOR [is_enable]
+GO
+ALTER TABLE [dbo].[profiles] ADD  CONSTRAINT [DF__profiles__is_cur__1627847C]  DEFAULT ('1') FOR [is_current]
+GO
+ALTER TABLE [dbo].[publish_methods] ADD  CONSTRAINT [DF_publications_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[publish_types] ADD  CONSTRAINT [DF_publish_types_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[sexes] ADD  CONSTRAINT [DF_genders_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[subject_types] ADD  CONSTRAINT [DF_subject_types_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[subjects] ADD  CONSTRAINT [DF_subjects_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[tag_types] ADD  CONSTRAINT [DF_tag_types_is_manual]  DEFAULT ((0)) FOR [is_manual]
+GO
+ALTER TABLE [dbo].[tag_types] ADD  CONSTRAINT [DF_tag_types_is_auto]  DEFAULT ((0)) FOR [is_auto]
+GO
+ALTER TABLE [dbo].[text_genres] ADD  CONSTRAINT [DF_text_genres_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[text_types] ADD  CONSTRAINT [DF_text_types_is_readonly]  DEFAULT ((0)) FOR [is_readonly]
+GO
+ALTER TABLE [dbo].[users] ADD  CONSTRAINT [DF__users__is_active__6D256EE9]  DEFAULT ('1') FOR [is_active]
+GO
+ALTER TABLE [dbo].[cities]  WITH CHECK ADD  CONSTRAINT [cities_province_id_foreign] FOREIGN KEY([province_id])
+REFERENCES [dbo].[provinces] ([id])
+GO
+ALTER TABLE [dbo].[cities] CHECK CONSTRAINT [cities_province_id_foreign]
+GO
+ALTER TABLE [dbo].[countries]  WITH CHECK ADD  CONSTRAINT [countries_continent_foreign] FOREIGN KEY([continent_id])
+REFERENCES [dbo].[continents] ([id])
+GO
+ALTER TABLE [dbo].[countries] CHECK CONSTRAINT [countries_continent_foreign]
+GO
+ALTER TABLE [dbo].[department_types]  WITH CHECK ADD  CONSTRAINT [department_types_supervisor_grade_id_foreign] FOREIGN KEY([supervisor_grade_id])
+REFERENCES [dbo].[grades] ([id])
+GO
+ALTER TABLE [dbo].[department_types] CHECK CONSTRAINT [department_types_supervisor_grade_id_foreign]
+GO
+ALTER TABLE [dbo].[departments]  WITH CHECK ADD  CONSTRAINT [departments_department_type_id_foreign] FOREIGN KEY([department_type_id])
+REFERENCES [dbo].[department_types] ([id])
+GO
+ALTER TABLE [dbo].[departments] CHECK CONSTRAINT [departments_department_type_id_foreign]
+GO
+ALTER TABLE [dbo].[departments]  WITH CHECK ADD  CONSTRAINT [FK_departments_department_categories] FOREIGN KEY([department_category_id])
+REFERENCES [dbo].[department_categories] ([id])
+GO
+ALTER TABLE [dbo].[departments] CHECK CONSTRAINT [FK_departments_department_categories]
+GO
+ALTER TABLE [dbo].[document_directors]  WITH CHECK ADD  CONSTRAINT [FK_document_directors_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_directors] CHECK CONSTRAINT [FK_document_directors_documents]
+GO
+ALTER TABLE [dbo].[document_directors]  WITH CHECK ADD  CONSTRAINT [FK_document_directors_sexes] FOREIGN KEY([sex_id])
+REFERENCES [dbo].[sexes] ([id])
+GO
+ALTER TABLE [dbo].[document_directors] CHECK CONSTRAINT [FK_document_directors_sexes]
+GO
+ALTER TABLE [dbo].[document_machine_tag]  WITH CHECK ADD  CONSTRAINT [FK_document_machine_tag_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_machine_tag] CHECK CONSTRAINT [FK_document_machine_tag_documents]
+GO
+ALTER TABLE [dbo].[document_machine_tag]  WITH CHECK ADD  CONSTRAINT [FK_document_machine_tag_machine_tags] FOREIGN KEY([machine_tag_id])
+REFERENCES [dbo].[machine_tags] ([id])
+GO
+ALTER TABLE [dbo].[document_machine_tag] CHECK CONSTRAINT [FK_document_machine_tag_machine_tags]
+GO
+ALTER TABLE [dbo].[document_manual_tag]  WITH CHECK ADD  CONSTRAINT [FK_document_manual_tag_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_manual_tag] CHECK CONSTRAINT [FK_document_manual_tag_documents]
+GO
+ALTER TABLE [dbo].[document_manual_tag]  WITH CHECK ADD  CONSTRAINT [FK_document_manual_tag_manual_tags] FOREIGN KEY([manual_tag_id])
+REFERENCES [dbo].[manual_tags] ([id])
+GO
+ALTER TABLE [dbo].[document_manual_tag] CHECK CONSTRAINT [FK_document_manual_tag_manual_tags]
+GO
+ALTER TABLE [dbo].[document_owners]  WITH CHECK ADD  CONSTRAINT [FK_document_owners_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_owners] CHECK CONSTRAINT [FK_document_owners_documents]
+GO
+ALTER TABLE [dbo].[document_profile]  WITH CHECK ADD  CONSTRAINT [FK_document_profile_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_profile] CHECK CONSTRAINT [FK_document_profile_documents]
+GO
+ALTER TABLE [dbo].[document_profile]  WITH CHECK ADD  CONSTRAINT [FK_document_profile_profiles] FOREIGN KEY([profile_id])
+REFERENCES [dbo].[profiles] ([id])
+GO
+ALTER TABLE [dbo].[document_profile] CHECK CONSTRAINT [FK_document_profile_profiles]
+GO
+ALTER TABLE [dbo].[document_signatories]  WITH CHECK ADD  CONSTRAINT [FK_document_signatories_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_signatories] CHECK CONSTRAINT [FK_document_signatories_documents]
+GO
+ALTER TABLE [dbo].[document_signatories]  WITH CHECK ADD  CONSTRAINT [FK_document_signatories_sexes] FOREIGN KEY([sex_id])
+REFERENCES [dbo].[sexes] ([id])
+GO
+ALTER TABLE [dbo].[document_signatories] CHECK CONSTRAINT [FK_document_signatories_sexes]
+GO
+ALTER TABLE [dbo].[document_subject]  WITH CHECK ADD  CONSTRAINT [document_subject_subjects_id_fk] FOREIGN KEY([subject_id])
+REFERENCES [dbo].[subjects] ([id])
+GO
+ALTER TABLE [dbo].[document_subject] CHECK CONSTRAINT [document_subject_subjects_id_fk]
+GO
+ALTER TABLE [dbo].[document_subject]  WITH CHECK ADD  CONSTRAINT [FK_document_subject_documents] FOREIGN KEY([document_id])
+REFERENCES [dbo].[documents] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[document_subject] CHECK CONSTRAINT [FK_document_subject_documents]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [documents_publish_methods_id_fk] FOREIGN KEY([publish_method_id])
+REFERENCES [dbo].[publish_methods] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [documents_publish_methods_id_fk]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_document_kinds] FOREIGN KEY([document_kind_id])
+REFERENCES [dbo].[document_kinds] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_document_kinds]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_files] FOREIGN KEY([file_id])
+REFERENCES [dbo].[files] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_files]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_issue_origins] FOREIGN KEY([issue_origin_id])
+REFERENCES [dbo].[issue_origins] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_issue_origins]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_languages] FOREIGN KEY([language_id])
+REFERENCES [dbo].[languages] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_languages]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_text_genres] FOREIGN KEY([text_genre_id])
+REFERENCES [dbo].[text_genres] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_text_genres]
+GO
+ALTER TABLE [dbo].[documents]  WITH CHECK ADD  CONSTRAINT [FK_documents_text_types] FOREIGN KEY([text_type_id])
+REFERENCES [dbo].[text_types] ([id])
+GO
+ALTER TABLE [dbo].[documents] CHECK CONSTRAINT [FK_documents_text_types]
+GO
+ALTER TABLE [dbo].[permission_role]  WITH CHECK ADD  CONSTRAINT [permission_role_permission_id_foreign] FOREIGN KEY([permission_id])
+REFERENCES [dbo].[permissions] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[permission_role] CHECK CONSTRAINT [permission_role_permission_id_foreign]
+GO
+ALTER TABLE [dbo].[permission_role]  WITH CHECK ADD  CONSTRAINT [permission_role_role_id_foreign] FOREIGN KEY([role_id])
+REFERENCES [dbo].[roles] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[permission_role] CHECK CONSTRAINT [permission_role_role_id_foreign]
+GO
+ALTER TABLE [dbo].[permission_user]  WITH CHECK ADD  CONSTRAINT [permission_user_permission_id_foreign] FOREIGN KEY([permission_id])
+REFERENCES [dbo].[permissions] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[permission_user] CHECK CONSTRAINT [permission_user_permission_id_foreign]
+GO
+ALTER TABLE [dbo].[permission_user]  WITH CHECK ADD  CONSTRAINT [permission_user_user_id_foreign] FOREIGN KEY([user_id])
+REFERENCES [dbo].[users] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[permission_user] CHECK CONSTRAINT [permission_user_user_id_foreign]
+GO
+ALTER TABLE [dbo].[profiles]  WITH CHECK ADD  CONSTRAINT [profiles_department_id_foreign] FOREIGN KEY([department_id])
+REFERENCES [dbo].[departments] ([id])
+GO
+ALTER TABLE [dbo].[profiles] CHECK CONSTRAINT [profiles_department_id_foreign]
+GO
+ALTER TABLE [dbo].[profiles]  WITH CHECK ADD  CONSTRAINT [profiles_grade_id_foreign] FOREIGN KEY([grade_id])
+REFERENCES [dbo].[grades] ([id])
+GO
+ALTER TABLE [dbo].[profiles] CHECK CONSTRAINT [profiles_grade_id_foreign]
+GO
+ALTER TABLE [dbo].[profiles]  WITH CHECK ADD  CONSTRAINT [profiles_user_id_foreign] FOREIGN KEY([user_id])
+REFERENCES [dbo].[users] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[profiles] CHECK CONSTRAINT [profiles_user_id_foreign]
+GO
+ALTER TABLE [dbo].[provinces]  WITH CHECK ADD  CONSTRAINT [provinces_country_id_foreign] FOREIGN KEY([country_id])
+REFERENCES [dbo].[countries] ([id])
+GO
+ALTER TABLE [dbo].[provinces] CHECK CONSTRAINT [provinces_country_id_foreign]
+GO
+ALTER TABLE [dbo].[publish_methods]  WITH CHECK ADD  CONSTRAINT [FK_publish_methods_publish_types] FOREIGN KEY([publish_type_id])
+REFERENCES [dbo].[publish_types] ([id])
+GO
+ALTER TABLE [dbo].[publish_methods] CHECK CONSTRAINT [FK_publish_methods_publish_types]
+GO
+ALTER TABLE [dbo].[role_user]  WITH CHECK ADD  CONSTRAINT [role_user_role_id_foreign] FOREIGN KEY([role_id])
+REFERENCES [dbo].[roles] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[role_user] CHECK CONSTRAINT [role_user_role_id_foreign]
+GO
+ALTER TABLE [dbo].[role_user]  WITH CHECK ADD  CONSTRAINT [role_user_user_id_foreign] FOREIGN KEY([user_id])
+REFERENCES [dbo].[users] ([id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[role_user] CHECK CONSTRAINT [role_user_user_id_foreign]
+GO
+ALTER TABLE [dbo].[subjects]  WITH CHECK ADD  CONSTRAINT [FK_subjects_subject_types] FOREIGN KEY([subject_type_id])
+REFERENCES [dbo].[subject_types] ([id])
+GO
+ALTER TABLE [dbo].[subjects] CHECK CONSTRAINT [FK_subjects_subject_types]
+GO
+ALTER TABLE [dbo].[users]  WITH CHECK ADD  CONSTRAINT [FK_users_genders] FOREIGN KEY([sex_id])
+REFERENCES [dbo].[sexes] ([id])
+GO
+ALTER TABLE [dbo].[users] CHECK CONSTRAINT [FK_users_genders]
+GO
+USE [master]
+GO
+ALTER DATABASE [app_bayan] SET  READ_WRITE
+GO

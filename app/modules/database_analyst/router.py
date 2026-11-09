@@ -3,9 +3,12 @@ import subprocess
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from app.core.database import DbSession
+
 from .pipeline import DatabaseAnalyst
 from .provisioning.types import DatabaseType
 from .schemas import (
+    AskRequest,
     DatabaseFileErrorResponse,
     DatabaseProvisionErrorResponse,
     ProvisionDatabaseResponse,
@@ -53,3 +56,14 @@ def ingest(
         return JSONResponse(status_code=500, content=response.model_dump())
 
     return ProvisionDatabaseResponse(**connection)
+
+
+@router.post("/ask")
+async def ask(db: DbSession, request: AskRequest):
+    app = DatabaseAnalyst(
+        db=db,
+        database_id=request.database_id,
+        owner_id=request.owner_id,
+    )
+
+    return app.ask(question=request.question)

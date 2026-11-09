@@ -1,3 +1,3 @@
-from .pipeline import ChatWithDocument
+from .app import ChatWithDocument
 
 __all__ = ["ChatWithDocument"]

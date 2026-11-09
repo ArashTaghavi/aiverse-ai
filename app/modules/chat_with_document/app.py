@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.core.database import DbSession
 
 from ..base.base_rag import BaseRAG
-from .config import HISTORY_TURNS, REWRITE_PROMPT, SYSTEM_PROMPT
+from .config import COLLECTION_NAME, HISTORY_TURNS, REWRITE_PROMPT, SYSTEM_PROMPT
 from .models import DocumentChatTurn
 
 
@@ -24,7 +24,7 @@ class ChatWithDocument(BaseRAG):
         self,
         db: DbSession,
         ownership_metadata: OwnershipMetadata,
-        collection_name="chat_with_document",
+        collection_name=COLLECTION_NAME,
         collection_metadata: dict[str, str | int] | None = None,
     ) -> None:
         self.document_id = ownership_metadata["document_id"]

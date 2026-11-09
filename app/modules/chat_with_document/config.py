@@ -1,3 +1,5 @@
+COLLECTION_NAME = "chat_with_document"
+
 # Chat History
 HISTORY_TURNS = 20
 

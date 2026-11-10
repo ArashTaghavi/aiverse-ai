@@ -26,7 +26,7 @@ class DatabaseProvisionErrorResponse(BaseModel):
     detail: str
 
 
-class IngestDocumentRequest(BaseModel):
+class IngestDatabaseRequest(BaseModel):
     file_path: str
     database_id: int
     owner_id: int

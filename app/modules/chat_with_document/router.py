@@ -12,9 +12,7 @@ from .schemas import AskRequest, AskResponse, IngestDocumentRequest
 router = APIRouter(prefix="/chat-with-document", tags=["Chat with Document"])
 
 
-@router.post(
-    "/ingest",
-)
+@router.post("/ingest")
 def ingest(request: IngestDocumentRequest):
     documents = Docx2txtLoader(file_path=request.file_path).load()
     indexer = DocumentIndexer(

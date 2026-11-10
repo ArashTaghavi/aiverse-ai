@@ -1,6 +1,5 @@
 from typing import Literal, TypedDict
 
-
 type DatabaseType = Literal["postgres", "mysql", "mariadb", "sqlserver"]
 
 

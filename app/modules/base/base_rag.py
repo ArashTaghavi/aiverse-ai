@@ -4,8 +4,10 @@ from functools import cached_property
 from langchain.chat_models import init_chat_model
 from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+from .config import REWRITE_PROMPT
 from .vector_store_provider import vector_store_provider
 
 
@@ -25,6 +27,9 @@ class BaseRAG:
 
         # Create LangChain's default tables if they do not already exist.
         _ = self.vector_store
+        self.rewrite_chain = (
+            self.create_prompt(REWRITE_PROMPT) | self.model | StrOutputParser()
+        )
 
     @cached_property
     def vector_store(self):

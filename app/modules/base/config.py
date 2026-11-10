@@ -13,3 +13,18 @@ class RagConfig(BaseModel):
     chunk_overlap: int = Field(default=200, ge=0)
 
     retrieval_k: int = Field(default=4, gt=0)
+
+
+REWRITE_PROMPT = """
+Given the conversation history and the latest user question,
+rewrite the question into a standalone question that can be
+understood without the conversation history.
+
+Do not answer the question.
+Do not add information that was not present in the conversation.
+Preserve the original language.
+
+If the question is already standalone, return it unchanged.
+
+Return only the rewritten question.
+"""

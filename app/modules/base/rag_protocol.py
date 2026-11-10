@@ -1,8 +1,10 @@
 from collections.abc import Iterator
-from typing import Protocol
+from typing import Protocol, TypeAlias
 
 from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
+
+RagResult: TypeAlias = Iterator[str] | str | dict[str, str | bool]
 
 
 class RagProtocol(Protocol):
@@ -24,11 +26,11 @@ class RagProtocol(Protocol):
         """Format retrieved documents into context for answer generation."""
         ...
 
-    def generate(
+    async def generate(
         self,
         question: str,
         context: str,
         chat_history: list[BaseMessage],
-    ) -> Iterator[str] | str:
+    ) -> RagResult:
         """Answer the original question using retrieved context and chat history."""
         ...

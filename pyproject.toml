@@ -16,6 +16,9 @@ dependencies = [
     "pymupdf4llm",
     "python-dotenv",
     "sqlalchemy",
+    "asyncpg>=0.32.0",
+    "asyncmy>=0.2.18",
+    "aioodbc>=0.5.0",
 ]
 
 [tool.fastapi]

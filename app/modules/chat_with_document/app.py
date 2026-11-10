@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.core.database import DbSession
 
 from ..base.base_rag import BaseRAG
-from .config import COLLECTION_NAME, HISTORY_TURNS, REWRITE_PROMPT, SYSTEM_PROMPT
+from .config import COLLECTION_NAME, HISTORY_TURNS, SYSTEM_PROMPT
 from .models import DocumentChatTurn
 
 
@@ -40,9 +40,6 @@ class ChatWithDocument(BaseRAG):
 
         self.answer_chain = (
             self.create_prompt(SYSTEM_PROMPT) | self.model | StrOutputParser()
-        )
-        self.rewrite_chain = (
-            self.create_prompt(REWRITE_PROMPT) | self.model | StrOutputParser()
         )
 
     def get_chat_history(self) -> list[BaseMessage]:

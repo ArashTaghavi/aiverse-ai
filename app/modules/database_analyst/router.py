@@ -1,12 +1,16 @@
 import subprocess
+from typing import cast
 
 from app.core.database import DbSession
 from app.modules.base import RAGEngine
 from app.modules.database_analyst.app import DatabaseAnalyst
+from app.modules.database_analyst.models.database import Database
 from app.modules.database_analyst.provisioning.docker import start_database
 from app.modules.database_analyst.provisioning.script import execute_script
+from app.modules.database_analyst.provisioning.types import DatabaseConnection
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
+from sqlalchemy import select
 
 from .schemas import (
     AskRequest,
@@ -15,6 +19,7 @@ from .schemas import (
     IngestDatabaseRequest,
     ProvisionDatabaseResponse,
 )
+import json
 
 router = APIRouter(prefix="/database-analyst", tags=["Database Analyst"])
 
@@ -49,7 +54,7 @@ def ingest(
 
 
 @router.post("/ask")
-def ask(db: DbSession, request: AskRequest):
+async def ask(db: DbSession, request: AskRequest):
     rag = DatabaseAnalyst(
         db=db,
         ownership_metadata={
@@ -59,4 +64,17 @@ def ask(db: DbSession, request: AskRequest):
     )
     engine = RAGEngine(rag=rag)
 
-    return engine.ask(question=request.question)
+    return await engine.ask(question=request.question)
+
+
+@router.post("x")
+def x(db: DbSession):
+    database = db.scalar(
+        select(Database).where(
+            Database.id == 5,
+            Database.owner_id == 1,
+        )
+    )
+    connection = json.loads(database.connection)
+    connection.pop("container_name")
+    return connection

@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from app.modules.base.rag_protocol import RagProtocol
 
 
@@ -5,7 +7,7 @@ class RAGEngine:
     def __init__(self, rag: RagProtocol) -> None:
         self.rag = rag
 
-    def ask(self, question: str) -> str:
+    def ask(self, question: str) -> Iterator[str] | str:
         chat_history = self.rag.get_chat_history()
         query = self.rag.rewrite_query(question=question, chat_history=chat_history)
         documents = self.rag.retrieve(query=query)

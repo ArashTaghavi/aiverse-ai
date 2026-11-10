@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from functools import cached_property
 
 from langchain.chat_models import init_chat_model
@@ -14,11 +15,13 @@ class BaseRAG:
         ownership_metadata: dict[str, str | int],
         collection_name: str,
         collection_metadata: dict[str, str | int] | None = None,
+        is_stream=True,
     ) -> None:
         self.config = vector_store_provider.config
         self.ownership_metadata = ownership_metadata
         self.collection_name = collection_name
         self.collection_metadata = collection_metadata
+        self.is_stream = is_stream
 
         # Create LangChain's default tables if they do not already exist.
         _ = self.vector_store
@@ -88,7 +91,15 @@ class BaseRAG:
         question: str,
         context: str,
         chat_history: list[BaseMessage],
-    ) -> str:
+    ) -> Iterator[str] | str:
+        if self.is_stream == True:
+            return self.answer_chain.stream(
+                {
+                    "question": question,
+                    "context": context,
+                    "chat_history": chat_history,
+                }
+            )
         return self.answer_chain.invoke(
             {
                 "question": question,

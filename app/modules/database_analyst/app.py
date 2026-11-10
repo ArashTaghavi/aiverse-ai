@@ -1,11 +1,6 @@
 from pathlib import Path
 from typing import TypedDict
 
-from langchain.messages import AIMessage, HumanMessage
-from langchain_core.messages import BaseMessage
-from pydantic import BaseModel, Field
-from sqlalchemy import select
-
 from app.core.database import DbSession
 from app.modules.database_analyst.provisioning.docker import start_database
 from app.modules.database_analyst.provisioning.script import execute_script
@@ -13,6 +8,10 @@ from app.modules.database_analyst.provisioning.types import (
     DatabaseConnection,
     DatabaseType,
 )
+from langchain.messages import AIMessage, HumanMessage
+from langchain_core.messages import BaseMessage
+from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from ..base.base_rag import BaseRAG
 from .config import COLLECTION_NAME, HISTORY_TURNS, REFINEMENT_QUESTION, SYSTEM_PROMPT
@@ -62,6 +61,7 @@ class DatabaseAnalyst(BaseRAG):
                 "database_id": self.database_id,
                 "owner_id": self.owner_id,
             },
+            is_stream=False
         )
 
         self.answer_chain = self.create_prompt(

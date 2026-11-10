@@ -11,4 +11,3 @@ class DatabaseConnection(TypedDict):
     username: str
     password: str
     container_name: str
-    project_name: str

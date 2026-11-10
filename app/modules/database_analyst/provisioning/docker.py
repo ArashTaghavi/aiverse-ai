@@ -57,7 +57,6 @@ def start_database(database_type: DatabaseType) -> DatabaseConnection:
         ),
         "password": environment[settings["password_env"]],
         "container_name": service["container_name"],
-        "project_name": config["name"],
     }
 
     admin_password_env = settings.get("admin_password_env")

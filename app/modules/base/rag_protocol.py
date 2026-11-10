@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import Protocol
 
 from langchain_core.documents import Document
@@ -28,6 +29,6 @@ class RagProtocol(Protocol):
         question: str,
         context: str,
         chat_history: list[BaseMessage],
-    ) -> str:
+    ) -> Iterator[str] | str:
         """Answer the original question using retrieved context and chat history."""
         ...

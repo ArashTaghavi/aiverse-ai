@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from langchain_community.document_loaders import Docx2txtLoader
 
 from app.core.database import DbSession
@@ -7,7 +8,7 @@ from app.modules.base.ingestion import DocumentIndexer
 from app.modules.chat_with_document import ChatWithDocument
 
 from .config import COLLECTION_NAME
-from .schemas import AskRequest, AskResponse, IngestDocumentRequest
+from .schemas import AskRequest, IngestDocumentRequest
 
 router = APIRouter(prefix="/chat-with-document", tags=["Chat with Document"])
 
@@ -34,6 +35,10 @@ def ask(db: DbSession, request: AskRequest):
             "owner_id": request.owner_id,
         },
     )
+
     engine = RAGEngine(rag=rag)
-    answer = engine.ask(question=request.question)
-    return AskResponse(answer=answer)
+
+    return StreamingResponse(
+        engine.ask(question=request.question),
+        media_type="text/plain; charset=utf-8",
+    )

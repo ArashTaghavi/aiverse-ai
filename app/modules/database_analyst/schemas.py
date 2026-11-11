@@ -29,7 +29,6 @@ class IngestDatabaseRequest(BaseModel):
     file_path: str
     database_id: int
     owner_id: int
-    # database_type: DatabaseType
 
 
 class AskRequest(BaseModel):

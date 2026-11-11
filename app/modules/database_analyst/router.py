@@ -12,6 +12,7 @@ from app.modules.base import RAGEngine
 from . import DatabaseAnalyst
 from .extract_database_schema import extract_schema_from_connection
 from .models.database import Database
+from .provisioning.detect_database_type import detect_database_type
 from .provisioning.docker import start_database
 from .provisioning.script import execute_script
 from .schemas import (
@@ -37,7 +38,16 @@ async def ingest(db: DbSession, request: IngestDatabaseRequest):
         raise HTTPException(status_code=404, detail="Database not found")
 
     try:
-        connection = await run_in_threadpool(start_database, database_type="sqlserver")
+        detection = await run_in_threadpool(detect_database_type, request.file_path)
+        if detection.database_type is None:
+            candidates = ", ".join(detection.candidates)
+            raise ValueError(
+                "Could not determine the database type from the SQL script."
+                + (f" Possible types: {candidates}." if candidates else " No distinctive dialect markers found.")
+            )
+        connection = await run_in_threadpool(
+            start_database, database_type=detection.database_type
+        )
         await run_in_threadpool(
             execute_script, file_path=request.file_path, connection=connection
         )

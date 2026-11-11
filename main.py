@@ -1,10 +1,9 @@
 from pathlib import Path
 
-from dotenv import load_dotenv
-from fastapi import FastAPI
-
 from app.modules.chat_with_document.router import router as document_router
 from app.modules.database_analyst.router import router as database_analyst_router
+from dotenv import load_dotenv
+from fastapi import FastAPI
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 

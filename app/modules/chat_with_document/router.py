@@ -3,10 +3,9 @@ from fastapi.responses import StreamingResponse
 from langchain_community.document_loaders import Docx2txtLoader
 
 from app.core.database import DbSession
-from app.modules.base import RAGEngine
-from app.modules.base.ingestion import DocumentIndexer
-from app.modules.chat_with_document import ChatWithDocument
+from app.modules.base import DocumentIndexer, RAGEngine
 
+from . import ChatWithDocument
 from .config import COLLECTION_NAME
 from .schemas import AskRequest, IngestDocumentRequest
 
@@ -27,7 +26,7 @@ def ingest(request: IngestDocumentRequest):
 
 
 @router.post("/ask")
-def ask(db: DbSession, request: AskRequest):
+async def ask(db: DbSession, request: AskRequest):
     rag = ChatWithDocument(
         db=db,
         ownership_metadata={
@@ -39,6 +38,6 @@ def ask(db: DbSession, request: AskRequest):
     engine = RAGEngine(rag=rag)
 
     return StreamingResponse(
-        engine.ask(question=request.question),
+        await engine.ask(question=request.question),
         media_type="text/plain; charset=utf-8",
     )

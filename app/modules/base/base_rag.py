@@ -1,4 +1,3 @@
-from collections.abc import Iterator
 from functools import cached_property
 
 from langchain.chat_models import init_chat_model
@@ -8,6 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from .config import REWRITE_PROMPT
+from .types import RagResult
 from .vector_store_provider import vector_store_provider
 
 
@@ -50,17 +50,6 @@ class BaseRAG:
             temperature=self.config.temperature,
         )
 
-    def retrieve_documents(self, query: str) -> str:
-        query = query.strip()
-
-        documents = self.vector_store.similarity_search(
-            query=query,
-            k=self.config.retrieval_k,
-            filter={**self.ownership_metadata},
-        )
-
-        return "\n\n".join(document.page_content for document in documents)
-
     @staticmethod
     def create_prompt(instructions: str) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(
@@ -91,24 +80,19 @@ class BaseRAG:
             filter={**self.ownership_metadata},
         )
 
-    def generate(
+    async def generate(
         self,
         question: str,
         context: str,
         chat_history: list[BaseMessage],
-    ) -> Iterator[str] | str:
-        if self.is_stream == True:
-            return self.answer_chain.stream(
-                {
-                    "question": question,
-                    "context": context,
-                    "chat_history": chat_history,
-                }
-            )
-        return self.answer_chain.invoke(
-            {
-                "question": question,
-                "context": context,
-                "chat_history": chat_history,
-            }
-        )
+    ) -> RagResult:
+        inputs = {
+            "question": question,
+            "context": context,
+            "chat_history": chat_history,
+        }
+
+        if self.is_stream:
+            return self.answer_chain.stream(inputs)
+
+        return self.answer_chain.invoke(inputs)

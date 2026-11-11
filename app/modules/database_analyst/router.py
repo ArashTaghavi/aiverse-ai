@@ -1,17 +1,16 @@
+import json
 import subprocess
-from typing import cast
 
 from app.core.database import DbSession
 from app.modules.base import RAGEngine
-from app.modules.database_analyst.app import DatabaseAnalyst
-from app.modules.database_analyst.models.database import Database
-from app.modules.database_analyst.provisioning.docker import start_database
-from app.modules.database_analyst.provisioning.script import execute_script
-from app.modules.database_analyst.provisioning.types import DatabaseConnection
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
+from . import DatabaseAnalyst
+from .models.database import Database
+from .provisioning.docker import start_database
+from .provisioning.script import execute_script
 from .schemas import (
     AskRequest,
     DatabaseFileErrorResponse,
@@ -19,7 +18,6 @@ from .schemas import (
     IngestDatabaseRequest,
     ProvisionDatabaseResponse,
 )
-import json
 
 router = APIRouter(prefix="/database-analyst", tags=["Database Analyst"])
 

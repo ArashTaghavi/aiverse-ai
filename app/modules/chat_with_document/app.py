@@ -6,8 +6,8 @@ from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy import select
 
 from app.core.database import DbSession
+from app.modules.base import BaseRAG
 
-from ..base.base_rag import BaseRAG
 from .config import COLLECTION_NAME, HISTORY_TURNS, SYSTEM_PROMPT
 from .models import DocumentChatTurn
 

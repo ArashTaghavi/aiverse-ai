@@ -3,13 +3,6 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 from app.core.database import DbSession
-from app.modules.database_analyst.models.database import Database
-from app.modules.database_analyst.provisioning.docker import start_database
-from app.modules.database_analyst.provisioning.script import execute_script
-from app.modules.database_analyst.provisioning.types import (
-    DatabaseConnection,
-    DatabaseType,
-)
 from langchain.messages import AIMessage, HumanMessage
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -27,7 +20,14 @@ from .config import (
     SYSTEM_PROMPT,
 )
 from .models import DatabaseChatTurn
+from .models.database import Database
 from .provisioning import DatabaseConnectionFactory
+from .provisioning.docker import start_database
+from .provisioning.script import execute_script
+from .provisioning.types import (
+    DatabaseConnection,
+    DatabaseType,
+)
 
 
 class SQLResponse(BaseModel):

@@ -1,10 +1,9 @@
-from collections.abc import Iterator
-from typing import Protocol, TypeAlias
+from typing import Protocol
 
 from langchain_core.documents import Document
 from langchain_core.messages import BaseMessage
 
-RagResult: TypeAlias = Iterator[str] | str | dict[str, str | bool]
+from app.modules.base.types import RagResult
 
 
 class RagProtocol(Protocol):

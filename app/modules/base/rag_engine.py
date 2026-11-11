@@ -1,4 +1,5 @@
-from app.modules.base.rag_protocol import RagProtocol, RagResult
+from .rag_protocol import RagProtocol
+from .types import RagResult
 
 
 class RAGEngine:
@@ -9,7 +10,10 @@ class RAGEngine:
         chat_history = self.rag.get_chat_history()
         query = self.rag.rewrite_query(question=question, chat_history=chat_history)
         documents = self.rag.retrieve(query=query)
-        context = self.rag.create_context(documents=documents)
+        # _ is score
+        context = self.rag.create_context(
+            documents=[document for document, _ in documents]
+        )
 
         return await self.rag.generate(
             question=question,

@@ -1,29 +1,22 @@
-import json
 from pathlib import Path
 from typing import TypedDict, cast
 
-from app.core.database import DbSession
-from langchain.messages import AIMessage, HumanMessage
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
-from sqlalchemy.exc import SQLAlchemyError
+
+from app.core.database import DbSession
 
 from ..base.base_rag import BaseRAG
+from .chat_history import chat_history
 from .config import (
     COLLECTION_NAME,
-    HISTORY_TURNS,
     QUESTION,
     REFINEMENT_PROMPT,
     REFINEMENT_QUESTION,
     SYSTEM_PROMPT,
 )
-from .models import DatabaseChatTurn
-from .models.database import Database
-from .provisioning import DatabaseConnectionFactory
-from .provisioning.docker import start_database
-from .provisioning.script import execute_script
+from .provisioning import execute_script, execute_sql, start_database
 from .provisioning.types import (
     DatabaseConnection,
     DatabaseType,
@@ -91,75 +84,10 @@ class DatabaseAnalyst(BaseRAG):
         ) | self.model.with_structured_output(SQLRefinement)
 
     def get_chat_history(self) -> list[BaseMessage]:
-        messages: list[BaseMessage] = []
-
-        histories = self.db.scalars(
-            select(DatabaseChatTurn)
-            .where(
-                DatabaseChatTurn.database_id == self.database_id,
-                DatabaseChatTurn.answer.is_not(None),
-            )
-            .order_by(DatabaseChatTurn.id.desc())
-            .limit(HISTORY_TURNS)
-        ).all()
-
-        for turn in reversed(histories):
-            messages.extend(
-                [
-                    HumanMessage(content=turn.question),
-                    AIMessage(content=turn.answer),
-                ]
-            )
-
-        return messages
+        return chat_history(db=self.db, database_id=self.database_id)
 
     def create_context(self, documents):
         return Path("sql.txt").read_text(encoding="utf-8")
-
-    async def execute_sql(self, sql: str) -> tuple[str, bool]:
-        database = self.db.scalar(
-            select(Database).where(
-                Database.id == self.database_id,
-                Database.owner_id == self.owner_id,
-            )
-        )
-
-        if database is None:
-            raise ValueError("Database not found")
-
-        connection = json.loads(database.connection)
-        connection.pop("container_name")
-
-        engine = DatabaseConnectionFactory.create(**connection)
-
-        try:
-            async with engine.begin() as conn:
-                result = await conn.execute(text(sql))
-
-                if result.returns_rows:
-                    rows = result.mappings().fetchmany(100)
-
-                    output = json.dumps(
-                        [dict(row) for row in rows],
-                        ensure_ascii=False,
-                        default=str,
-                        indent=2,
-                    )
-                else:
-                    output = json.dumps(
-                        {
-                            "message": "Query executed successfully.",
-                            "affected_rows": result.rowcount,
-                        }
-                    )
-
-                return output, True
-
-        except SQLAlchemyError as e:
-            return str(e), False
-
-        finally:
-            await engine.dispose()
 
     async def generate(
         self,
@@ -181,8 +109,11 @@ class DatabaseAnalyst(BaseRAG):
         )
 
         # Step 2: Execute initial SQL.
-        result_v1, success_v1 = await self.execute_sql(
+        result_v1, success_v1 = await execute_sql(
+            db=self.db,
             sql=initial_response.sql,
+            database_id=self.database_id,
+            owner_id=self.owner_id,
         )
 
         refinement_input = (
@@ -210,8 +141,11 @@ class DatabaseAnalyst(BaseRAG):
         if refine_response.needs_refinement:
             final_sql = refine_response.refined_sql
 
-            final_result, success = await self.execute_sql(
+            final_result, success = await execute_sql(
+                db=self.db,
                 sql=final_sql,
+                database_id=self.database_id,
+                owner_id=self.owner_id,
             )
 
         return {

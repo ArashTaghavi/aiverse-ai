@@ -1,10 +1,8 @@
-import json
 import subprocess
-from pathlib import Path
-from uuid import uuid4
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
@@ -13,6 +11,7 @@ from app.modules.base import RAGEngine
 
 from . import DatabaseAnalyst
 from .extract_database_schema import extract_schema_from_connection
+from .models.database import Database
 from .provisioning.docker import start_database
 from .provisioning.script import execute_script
 from .schemas import (
@@ -27,7 +26,16 @@ router = APIRouter(prefix="/database-analyst", tags=["Database Analyst"])
 
 
 @router.post("/ingest")
-async def ingest(request: IngestDatabaseRequest):
+async def ingest(db: DbSession, request: IngestDatabaseRequest):
+    database = db.scalar(
+        select(Database).where(
+            Database.id == request.database_id,
+            Database.owner_id == request.owner_id,
+        )
+    )
+    if database is None:
+        raise HTTPException(status_code=404, detail="Database not found")
+
     try:
         connection = await run_in_threadpool(start_database, database_type="sqlserver")
         await run_in_threadpool(
@@ -54,24 +62,16 @@ async def ingest(request: IngestDatabaseRequest):
 
     try:
         schema = await extract_schema_from_connection(connection)
-        schema_directory = Path(__file__).resolve().parents[3] / "uploads" / "database_schemas"
-        schema_path = schema_directory / f"{request.database_id}_{uuid4().hex}.json"
-        await run_in_threadpool(schema_directory.mkdir, parents=True, exist_ok=True)
-        await run_in_threadpool(
-            schema_path.write_text,
-            json.dumps(json.loads(schema), ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        database.database_schema = schema
+        db.commit()
     except (SQLAlchemyError, OSError, ValueError) as error:
+        db.rollback()
         response = DatabaseProvisionErrorResponse(
-            detail=f"Schema extraction or file save failed ({type(error).__name__})."
+            detail=f"Schema extraction or database save failed ({type(error).__name__})."
         )
         return JSONResponse(status_code=500, content=response.model_dump())
 
-    return {
-        **ProvisionDatabaseResponse(**connection).model_dump(),
-        "schema_path": str(schema_path),
-    }
+    return ProvisionDatabaseResponse(**connection)
 
 
 @router.post("/ask")

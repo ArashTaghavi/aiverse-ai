@@ -4,6 +4,7 @@ from typing import TypedDict, cast
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from app.core.database import DbSession
 
@@ -16,6 +17,7 @@ from .config import (
     REFINEMENT_QUESTION,
     SYSTEM_PROMPT,
 )
+from .models import Database
 from .provisioning import execute_script, execute_sql, start_database
 from .provisioning.types import (
     DatabaseConnection,
@@ -87,7 +89,15 @@ class DatabaseAnalyst(BaseRAG):
         return chat_history(db=self.db, database_id=self.database_id)
 
     def create_context(self, documents):
-        return Path("sql.txt").read_text(encoding="utf-8")
+        database = self.db.scalar(
+            select(Database).where(
+                Database.id == self.database_id,
+                Database.owner_id == self.owner_id,
+            )
+        )
+        if database is None:
+            raise ValueError("Database not found")
+        return database.database_schema
 
     async def generate(
         self,

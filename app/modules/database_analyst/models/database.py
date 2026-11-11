@@ -1,6 +1,7 @@
-from app.core.database import Base
-from sqlalchemy import JSON, BigInteger, String
+from sqlalchemy import BigInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import Base
 
 
 class Database(Base):
@@ -13,3 +14,4 @@ class Database(Base):
     original_name: Mapped[str] = mapped_column(String(255))
     storage_path: Mapped[str] = mapped_column(String(255))
     connection: Mapped[str] = mapped_column(String)
+    database_schema: Mapped[str] = mapped_column(Text)

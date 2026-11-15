@@ -2,15 +2,19 @@ from datetime import datetime, timedelta, timezone
 
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
+from langgraph.checkpoint.memory import InMemorySaver
 
 from .context import CustomerSupportContext
 from .schemas.chat_schema import ChatResponse
 from .tools import (
+    cancel_order,
     get_customer_order,
     get_customer_order_stats,
     get_store_policies,
-    search_product,
 )
+
+# Shared across agent instances within this server process.
+checkpointer = InMemorySaver()
 
 SYSTEM_PROMPT = """
 You are a professional customer support agent.
@@ -44,8 +48,8 @@ class CustomerSupportAgent:
         )
 
         self.tools = [
+            cancel_order,
             get_store_policies,
-            search_product,
             get_customer_order,
             get_customer_order_stats,
         ]
@@ -53,7 +57,8 @@ class CustomerSupportAgent:
         self.agent = create_agent(
             model=self.model,
             tools=self.tools,
-            system_prompt=SYSTEM_PROMPT + (
+            system_prompt=SYSTEM_PROMPT
+            + (
                 "\nCurrent local date in Asia/Tehran (UTC+03:30): "
                 f"{datetime.now(timezone(timedelta(hours=3, minutes=30))):%Y-%m-%d (%A)}.\n"
                 "Resolve relative date requests against this date before calling tools. "
@@ -62,4 +67,5 @@ class CustomerSupportAgent:
             ),
             response_format=ChatResponse,
             context_schema=CustomerSupportContext,
+            checkpointer=checkpointer,
         )

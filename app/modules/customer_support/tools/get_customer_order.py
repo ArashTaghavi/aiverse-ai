@@ -1,29 +1,43 @@
 from langchain.tools import ToolRuntime, tool
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.core.database import SessionLocal
 
+from ..context import CustomerSupportContext
 from ..models import Order, OrderItem, Payment, Product
 from ..schemas import ErrorResponse, NotFoundResponse
 
 
 @tool
-def get_customer_order(tracking_code: str, runtime: ToolRuntime) -> dict:
-    """Find the authenticated customer's order and its items by tracking code.
+def get_customer_order(
+    order_identifier: str, runtime: ToolRuntime[CustomerSupportContext]
+) -> dict:
+    """Retrieve and present the authenticated customer's complete order details.
 
-    Use when a customer provides a shipping tracking code and asks about
-    their order, delivery status, payment status, or purchased items.
+    Use this tool when the customer requests full order information,
+    a complete order summary, or all details about a specific order.
+
+    The tool returns all available order information, including order
+    status, shipping details, purchased products, prices, and payments.
+
+    Present the information comprehensively and in a well-organized format.
+    Include all relevant details from the returned data.
+
+    Do not use this tool for questions about a specific aspect of an
+    order. Use get_order_partial_details instead.
+
+    Never invent missing information or expose another customer's order.
 
     Args:
-        tracking_code: The order's shipping tracking code.
+        order_identifier: The order number or shipping tracking code.
     """
 
-    tracking_code = tracking_code.strip()
-    if not tracking_code:
-        return ErrorResponse(message="invalid_tracking_code").model_dump()
+    order_identifier = order_identifier.strip()
+
+    if not order_identifier:
+        return ErrorResponse(message="invalid_order_identifier").model_dump()
 
     context = runtime.context
-
     user_id = context.get("user_id") if isinstance(context, dict) else None
 
     if not isinstance(user_id, int) or user_id <= 0:
@@ -34,10 +48,14 @@ def get_customer_order(tracking_code: str, runtime: ToolRuntime) -> dict:
     with SessionLocal() as db:
         order = db.scalar(
             select(Order).where(
-                Order.tracking_code == tracking_code,
                 Order.user_id == user_id,
+                or_(
+                    Order.order_number == order_identifier,
+                    Order.tracking_code == order_identifier,
+                ),
             )
         )
+
         if order is None:
             return NotFoundResponse(message="Order not found").model_dump()
 
@@ -50,8 +68,7 @@ def get_customer_order(tracking_code: str, runtime: ToolRuntime) -> dict:
 
         payments = db.scalars(
             select(Payment)
-            .join(Order, Payment.order_id == Order.id)
-            .where(Order.id == order.id, Order.user_id == user_id)
+            .where(Payment.order_id == order.id)
             .order_by(Payment.id.desc())
         ).all()
 
@@ -76,6 +93,7 @@ def get_customer_order(tracking_code: str, runtime: ToolRuntime) -> dict:
                     "id": item.id,
                     "order_id": item.order_id,
                     "product_id": item.product_id,
+                    "product_title": title,
                     "quantity": item.quantity,
                     "unit_price": item.unit_price,
                     "total_price": item.total_price,

@@ -10,9 +10,8 @@ class RAGEngine:
         chat_history = self.rag.get_chat_history()
         query = self.rag.rewrite_query(question=question, chat_history=chat_history)
         documents = self.rag.retrieve(query=query)
-        # _ is score
         context = self.rag.create_context(
-            documents=[document for document, _ in documents]
+            documents=[document for document in documents]
         )
 
         return await self.rag.generate(

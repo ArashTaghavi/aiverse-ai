@@ -1,8 +1,16 @@
+from datetime import datetime, timedelta, timezone
+
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 
+from .context import CustomerSupportContext
 from .schemas.chat_schema import ChatResponse
-from .tools import get_customer_order, get_store_policies, search_product
+from .tools import (
+    get_customer_order,
+    get_customer_order_stats,
+    get_store_policies,
+    search_product,
+)
 
 SYSTEM_PROMPT = """
 You are a professional customer support agent.
@@ -17,9 +25,12 @@ Rules:
 Response formatting:
 - Always provide a user-friendly message.
 - For product search results, include a products block.
-- For a single order, include an order block.
-- For multiple orders, include an orders block.
+- Only supported block types are products and order. Never emit an orders block.
+- For complete details of a single order, include an order block.
+- For multiple complete orders, include a separate order block for each order.
 - For general questions, return an empty blocks list.
+- For aggregate order statistics, use get_customer_order_stats and return an empty blocks list.
+- Most/least expensive and first/latest order summaries from statistics belong in the message with blocks=[]. They are not complete orders and must not be converted into order blocks.
 - Only include structured data supported by tool results.
 """
 
@@ -36,11 +47,19 @@ class CustomerSupportAgent:
             get_store_policies,
             search_product,
             get_customer_order,
+            get_customer_order_stats,
         ]
 
         self.agent = create_agent(
             model=self.model,
             tools=self.tools,
-            system_prompt=SYSTEM_PROMPT,
+            system_prompt=SYSTEM_PROMPT + (
+                "\nCurrent local date in Asia/Tehran (UTC+03:30): "
+                f"{datetime.now(timezone(timedelta(hours=3, minutes=30))):%Y-%m-%d (%A)}.\n"
+                "Resolve relative date requests against this date before calling tools. "
+                "Use Gregorian YYYY-MM-DD tool arguments. For Persian requests, "
+                "weeks begin on Saturday. If no period is requested, omit date filters.\n"
+            ),
             response_format=ChatResponse,
+            context_schema=CustomerSupportContext,
         )

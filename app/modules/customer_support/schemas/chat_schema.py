@@ -78,6 +78,12 @@ class ChatResponse(BaseModel):
             "For general questions, answer directly."
         )
     )
-    blocks: list[Annotated[ProductsBlock | OrderBlock, Field(discriminator="type")]] = (
-        Field(default_factory=list)
+    blocks: list[Annotated[ProductsBlock | OrderBlock, Field(discriminator="type")]] = Field(
+        default_factory=list,
+        description=(
+            "Only products and order blocks are supported. For multiple complete "
+            "orders, use one order block per order, never an orders block. "
+            "For statistics or brief order summaries, return an empty list and "
+            "answer in message. Never invent missing fields to populate a block."
+        ),
     )

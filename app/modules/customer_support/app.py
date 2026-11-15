@@ -1,7 +1,8 @@
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 
-from .tools import get_store_policies, search_product
+from .schemas.chat_schema import ChatResponse
+from .tools import get_customer_order, get_store_policies, search_product
 
 SYSTEM_PROMPT = """
 You are a professional customer support agent.
@@ -34,10 +35,12 @@ class CustomerSupportAgent:
         self.tools = [
             get_store_policies,
             search_product,
+            get_customer_order,
         ]
 
         self.agent = create_agent(
             model=self.model,
             tools=self.tools,
             system_prompt=SYSTEM_PROMPT,
+            response_format=ChatResponse,
         )

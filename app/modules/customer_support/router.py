@@ -17,6 +17,7 @@ def ingest(question: str):
                     "content": question,
                 }
             ]
-        }
+        },
+        context={"user_id": 1},
     )
     return response["messages"][-1].content

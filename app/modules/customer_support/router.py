@@ -1,12 +1,18 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from . import CustomerSupportAgent
 
 router = APIRouter(prefix="/customer-support", tags=["Customer Support"])
 
 
+class AskRequest(BaseModel):
+    user_id: int
+    question: str
+
+
 @router.post("/ask")
-def ingest(question: str):
+def ask(request: AskRequest):
     app = CustomerSupportAgent()
 
     response = app.agent.invoke(
@@ -14,10 +20,11 @@ def ingest(question: str):
             "messages": [
                 {
                     "role": "user",
-                    "content": question,
+                    "content": request.question,
                 }
             ]
         },
-        context={"user_id": 1},
+        context={"user_id": request.user_id},
     )
-    return response["messages"][-1].content
+
+    return response["structured_response"]

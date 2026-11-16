@@ -17,13 +17,18 @@ def cancel_order(
     runtime: ToolRuntime[CustomerSupportContext],
     cancellation_reason: str | None = None,
 ) -> dict:
-    """Ask for confirmation, then cancel the authenticated customer's order.
+    """Start the cancellation flow for the authenticated customer's order.
 
-    Only PENDING and PROCESSING orders can be cancelled. Never cancel an
-    order without explicit customer confirmation. This tool pauses the graph
+    Call this tool as soon as the customer requests cancellation and supplies
+    an order number or tracking code. Do not ask the customer to confirm before
+    calling it: the tool itself requests confirmation using a frontend dialog.
+    Calling the tool does not immediately cancel the order.
+
+    Only PENDING and PROCESSING orders can be cancelled. The tool requires
+    explicit customer confirmation before changing the order. It pauses the graph
     with interrupt before making changes. The server must expose the interrupt
     to the customer and resume the same user-owned thread with Command(resume=...)
-    containing confirmed (a boolean) and order_id (the displayed database ID).
+    containing confirmed (a boolean).
     A checkpointer and stable thread_id are required. The resume value must
     come from the customer's confirmation action, never from the model.
     Declining confirmation leaves the order unchanged. Eligibility and
@@ -65,8 +70,11 @@ def cancel_order(
         if order.order_status == "CANCELLED":
             return SuccessResponse(
                 message="order_already_cancelled",
-                data={"id": order.id, "order_number": order.order_number,
-                      "order_status": order.order_status},
+                data={
+                    "id": order.id,
+                    "order_number": order.order_number,
+                    "order_status": order.order_status,
+                },
             ).model_dump()
         if order.order_status not in {"PENDING", "PROCESSING"} or (
             order.shipped_at is not None or order.delivered_at is not None
@@ -74,25 +82,20 @@ def cancel_order(
             return ErrorResponse(message="order_cannot_be_cancelled").model_dump()
         confirmation_request = {
             "type": "order_cancellation_confirmation",
-            "message": f"آیا لغو سفارش {order.order_number} را تأیید می‌کنید؟",
-            "order_id": order.id,
-            "order_number": order.order_number,
-            "total_amount": order.total_amount,
-            "payment_status": order.payment_status,
-            "cancellation_reason": cancellation_reason,
-            "refund_notice": "لغو سفارش به‌تنهایی به معنی انجام بازپرداخت نیست.",
+            "message": f"سفارش شماره {order.order_number} در حال لغو شدن است. آیا تأیید می‌کنید؟",
         }
 
     confirmation = interrupt(confirmation_request)
     if (
         not isinstance(confirmation, dict)
         or type(confirmation.get("confirmed")) is not bool
-        or type(confirmation.get("order_id")) is not int
-        or confirmation["order_id"] != order_id
     ):
         return ErrorResponse(message="invalid_cancellation_confirmation").model_dump()
     if not confirmation["confirmed"]:
-        return {"status": "declined", "message": "order_cancellation_declined"}
+        return {
+            "status": "declined",
+            "message": "order_cancellation_declined",
+        }
 
     with SessionLocal() as db, db.begin():
         order = db.scalar(
@@ -126,7 +129,9 @@ def cancel_order(
             return ErrorResponse(message="order_cannot_be_cancelled").model_dump()
 
         # Store local naive timestamps consistently with the existing DateTime model.
-        now = datetime.now(timezone(timedelta(hours=3, minutes=30))).replace(tzinfo=None)
+        now = datetime.now(timezone(timedelta(hours=3, minutes=30))).replace(
+            tzinfo=None
+        )
         order.order_status = "CANCELLED"
         order.cancelled_at = now
         order.updated_at = now

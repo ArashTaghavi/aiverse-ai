@@ -4,10 +4,11 @@ from sqlalchemy import or_, select
 from app.core.database import SessionLocal
 
 from ..models import Product
+from ..schemas import NotFoundResponse
 
 
 @tool
-def search_product(query: str) -> list[dict]:
+def search_product(query: str) -> list[dict] | dict:
     """Search the store's product catalog by product name, brand, or model.
 
     Use this tool when customers ask about:
@@ -36,7 +37,6 @@ def search_product(query: str) -> list[dict]:
     Return matching products with their actual prices, stock,
     and specifications. Never invent product information.
     """
-    print(f"query:{query}")
 
     query = query.strip()
     if not query:
@@ -55,6 +55,9 @@ def search_product(query: str) -> list[dict]:
             .order_by(Product.id.desc())
             .limit(10)
         ).all()
+
+        if len(products) == 0:
+            return NotFoundResponse(message="Product not found").model_dump()
 
         return [
             {

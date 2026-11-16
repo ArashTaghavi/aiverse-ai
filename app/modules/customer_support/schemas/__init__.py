@@ -1,3 +1,5 @@
+from .ask_schema import AskRequest
+from .confirm_cancel_order_schema import ConfirmCancelOrderRequest
 from .chat_schema import (
     ChatResponse,
     OrderBlock,
@@ -14,6 +16,8 @@ from .response_schema import (
 )
 
 __all__ = [
+    "AskRequest",
+    "ConfirmCancelOrderRequest",
     "ChatResponse",
     "ErrorResponse",
     "NotFoundResponse",
